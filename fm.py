@@ -1,8 +1,9 @@
-from chainer import Chain
+from chainer import Chain, Variable
 from chainer import links as L
 from chainer import functions as F
 from chainer import reporter
 import numpy as np
+import sys
 
 
 class FM(Chain):
@@ -58,17 +59,30 @@ class FM(Chain):
         shape (batchsize, n_feat_max)
         """
 
+        loc, val = val, loc
+        # print(val.data)
+        # print(type(val.data))
         bs = val.data.shape[0]
         nf = val.data.shape[1]
         mask = self.mask(bs, nf)
         # Input shape is (batchsize, n_feat_max) and
         # v is (batchsize, n_feat_max, n_dim)
+        # print(loc)
+        # print(type(loc))
+        # print(loc.dtype)
+        # print(loc.data)
+        # loc = Variable(loc.data.astype(np.int32))
+        # print(type(loc))
+        # sys.exit(0)
         vi = self.latent(loc)
         # Form square latent interaction matrix of shape
         # (batchsize, n_feat_max, n_feat_max)
         vij = F.batch_matmul(vi, vi, transb=True)
         # Form square observed feature matrix of shape
         # (batchsize, n_feat_max, n_feat_max)
+        # print('val', val.data.dtype)
+        # print(val.data)
+        # val = Variable(val.data.astype(np.float32))
         xij = F.batch_matmul(val, val, transb=True)
         # Slope coupled to each active feature
         # loc & self.slope(loc) are shape (batchsize, n_feat_max)

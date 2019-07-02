@@ -28,7 +28,7 @@ def batch_interactions(x):
 class VFM(Chain):
     lv_floor = -100.0
 
-    def __init__(self, n_features=None, n_dim=8, lossfun=F.mean_squared_error,
+    def __init__(self, n_features=None, n_dim=1 , lossfun=F.mean_squared_error,
                  lambda0=1, lambda1=1, lambda2=1, init_bias_mu=0.0,
                  init_bias_lv=0.0, intx_term=True, total_nobs=1):
         self.n_dim = n_dim

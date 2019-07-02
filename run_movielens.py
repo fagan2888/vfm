@@ -16,20 +16,20 @@ from auto_vfm import AutoVFM
 
 # Hyperparameters set through CLI
 parser = argparse.ArgumentParser()
-parser.add_argument('--n_dim', dest='n_dim', default=8, type=int)
-parser.add_argument('--batchsize', dest='batchsize', default=4096, type=int)
-parser.add_argument('--model_type', dest='model_type', default='FM', type=str)
+parser.add_argument('--n_dim', dest='n_dim', default=20, type=int)
+parser.add_argument('--batchsize', dest='batchsize', default=10000, type=int)
+parser.add_argument('--model_type', dest='model_type', default='VFM', type=str)
 parser.add_argument('--device', dest='device', default=-1, type=int)
 parser.add_argument('--lambda0', dest='lambda0', default=1, type=float)
 parser.add_argument('--lambda1', dest='lambda1', default=1, type=float)
-parser.add_argument('--lambda2', dest='lambda2', default=1, type=float)
+parser.add_argument('--lambda2', dest='lambda2', default=50, type=float)
 parser.add_argument('--intx_term', dest='intx_term', default=1, type=int)
 parser.add_argument('--alpha', dest='alpha', default=1e-3, type=float)
 parser.add_argument('--resume', dest='resume', default=None, type=str)
 
 # Expand arguments into local variables
 args = vars(parser.parse_args())
-print args
+print(args)
 n_dim = args.pop('n_dim')
 batchsize = args.pop('batchsize')
 model_type = args.pop('model_type')
@@ -42,8 +42,10 @@ alpha = args.pop('alpha')
 resume = args.pop('resume')
 
 # Download, unzip and read in the dataset
-name = 'ml-1m.zip'
-base = 'ml-1m'
+# name = 'ml-1m.zip'
+# base = 'ml-1m'
+name = 'ml-100k.zip'
+base = 'ml-100k'
 if not os.path.exists(name):
     url = 'http://files.grouplens.org/datasets/movielens/' + name
     r = requests.get(url)
@@ -53,7 +55,8 @@ if not os.path.exists(name):
     zip.extractall()
 
 # First col is user, 2nd is movie id, 3rd is rating
-data = np.genfromtxt(base + '/ratings.dat', delimiter='::')
+# data = np.genfromtxt(base + '/ratings.dat', delimiter='::')
+data = np.genfromtxt(base + '/u.data', delimiter='\t')
 # print("WARNING: Subsetting data")
 # data = data[::100, :]
 user = data[:, 0].astype('int32')
@@ -69,13 +72,13 @@ val = np.ones((len(data), 2), dtype='float32')
 
 # Train test split
 tloc, vloc, tval, vval, ty, vy = train_test_split(loc, val, rating,
-                                                  random_state=42)
+                                                  random_state=42, test_size=0.2)
 total_nobs = len(tloc)
 train = TupleDataset(tloc, tval, ty)
 valid = TupleDataset(vloc, vval, vy)
 
 # Setup model
-print "Running model:" + model_type
+print("Running model:" + model_type)
 if model_type == 'FM':
     model = FM(n_features, n_dim, lambda0=lambda0, lambda1=lambda1,
                lambda2=lambda2, init_bias=ty.mean(), intx_term=intx_term,
